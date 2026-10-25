@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<title>Поездка НГ 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=Caveat:wght@600&display=swap">
+<style>
+/* Layout: слева панель выбора (липкая на широком экране), справа план, бронирования, одежда, сборы */
+:root{
+  /* Два мира поездки: мандариновая Абхазия и снежные горы. Фон - не кремовая бумага,
+     а светлая хвоя: субтропики зимой, а не редакционный разворот. */
+  --bg:#F3F6F2; --surface:#FFFFFF; --ink:#16261F; --muted:#5B6C63; --line:#DBE3DC;
+  --accent:#E2701C; --accent-soft:#FCE9DA; --leaf:#2E6A4E; --leaf-soft:#E1EFE7;
+  --snow:#36708F; --snow-soft:#E0EBF2;
+  --warn:#A8521A; --warn-soft:#FBEADF; --bad:#B3261E; --bad-soft:#FBE4E2;
+  --display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0F1714; --surface:#17221D; --ink:#E8EFE9; --muted:#9BAAA1; --line:#2A3630;
+  --accent:#F28A3E; --accent-soft:#3A2614; --leaf:#74C39A; --leaf-soft:#173126;
+  --snow:#7FB4D0; --snow-soft:#152A34;
+  --warn:#F0A36B; --warn-soft:#3A2414; --bad:#F2928A; --bad-soft:#3B1A18; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 56px}
+h1,h2{font-family:var(--display);font-weight:700;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(24px,4.4vw,36px);line-height:1.1}
+h2{font-size:17px}
+h3{margin:0;font-size:14px;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{max-width:1200px;margin:0 auto 20px;display:flex;flex-direction:column;gap:12px}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.summary div{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.summary b{font-family:var(--display);font-weight:500;font-size:18px;font-variant-numeric:tabular-nums}
+.summary span{font-size:12px;color:var(--muted)}
+.summary .good b{color:var(--leaf)} .summary .bad b{color:var(--bad)}
+@media (max-width:700px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.layout{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:360px minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:920px){.layout{grid-template-columns:1fr}}
+aside{display:flex;flex-direction:column;gap:14px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding-bottom:4px}
+@media (max-width:920px){aside{position:static;max-height:none;overflow:visible}}
+main{display:flex;flex-direction:column;gap:28px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.field>.lbl{font-size:13px;color:var(--muted);font-weight:500}
+select{font:inherit;padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{border:1px solid var(--line);background:var(--bg);padding:6px 11px;border-radius:999px;cursor:pointer;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.step{display:flex;align-items:center;gap:10px}
+.step button{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:17px;line-height:1}
+.step button:disabled{opacity:.35;cursor:default}
+.step output{min-width:1.6em;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.checks{display:flex;flex-direction:column;gap:2px}
+.checks label{display:flex;gap:9px;align-items:flex-start;padding:5px 4px;border-radius:8px;cursor:pointer;font-size:14px}
+.checks label:hover{background:var(--bg)}
+.checks input{margin-top:3px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+.checks small{display:block;color:var(--muted);font-size:12px}
+.sub{margin-left:25px}
+
+/* календарь смен */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .wd{font-size:11px;color:var(--muted);text-align:center}
+.cal button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:5px 0 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;font-variant-numeric:tabular-nums;line-height:1.15}
+.cal button small{font-size:10px;color:var(--muted)}
+.cal button.free{background:var(--leaf-soft)}            /* свободные дни — заливкой */
+.cal button.trip{border-color:var(--accent)}             /* поездка — рамкой, видна и поверх заливки */
+.cal button.work{background:var(--ink);color:var(--bg)}  /* смена перекрывает заливку свободного дня */
+.cal button.work small{color:var(--bg)}
+.cal button.work.trip{background:var(--bad);border-color:var(--bad);color:#fff}
+.cal button.bd{box-shadow:inset 0 -3px 0 var(--accent)}
+.cal .pad{visibility:hidden}
+.range{display:flex;align-items:center;gap:12px}
+.range input[type=range]{flex:1;min-width:0;accent-color:var(--accent)}
+.range b{font-variant-numeric:tabular-nums;min-width:4.8em;text-align:right;font-size:14px}
+textarea#wish{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;resize:vertical}
+.acts{border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 10px}
+.acts+.acts{margin-top:6px}
+.acts>summary{cursor:pointer;padding:10px 2px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;list-style:none}
+.acts>summary::-webkit-details-marker{display:none}
+.acts>summary::before{content:"▸";color:var(--muted);font-size:12px;transition:transform .15s}
+.acts[open]>summary::before{transform:rotate(90deg)}
+.acts>summary .cnt{margin-left:auto;font-weight:400;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.acts>.checks{padding-bottom:8px}
+.card ul.links{list-style:none;padding:0;margin:0;gap:4px}
+.card ul.links a{text-decoration:none;font-weight:500}
+.card ul.links a:hover{text-decoration:underline}
+.addrow{display:flex;gap:6px;margin-top:8px}
+.addrow input{flex:1;min-width:0;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.checks label.own{position:relative;padding-right:30px}
+.checks .del{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:24px;height:24px;border:0;background:none;color:var(--muted);font-size:17px;line-height:1;cursor:pointer;border-radius:6px}
+.checks .del:hover{background:var(--bad-soft);color:var(--bad)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+section{display:flex;flex-direction:column;gap:12px}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 14px}
+.alerts{display:flex;flex-direction:column;gap:6px}
+.alert{padding:9px 12px;border-radius:10px;font-size:14px;background:var(--leaf-soft);color:var(--ink);border-left:3px solid var(--leaf)}
+.alert.warn{background:var(--warn-soft);border-left-color:var(--warn)}
+.alert.bad{background:var(--bad-soft);border-left-color:var(--bad)}
+
+.days{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.days .day{opacity:1}
+.day{background-blend-mode:normal}
+/* Нить маршрута: серое - дорога, мандарин - Абхазия, морозный синий - горы,
+   переезд между ними - переход одного цвета в другой. */
+.day{display:grid;grid-template-columns:92px minmax(0,1fr) 130px;gap:4px 16px;padding:12px 16px;border-top:1px solid var(--line);
+  box-shadow:inset 4px 0 0 var(--line)}
+/* Рисунок живёт в колонке даты, под днём недели: там пусто и он ничего не закрывает. */
+.day .d::before{content:"";display:block;width:34px;height:34px;margin:7px 0 2px;background:no-repeat center/contain}
+.day.z-road .d::before{background-image:url("data:image/webp;base64,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")}
+.day.z-abh .d::before{background-image:url("data:image/webp;base64,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")}
+.day.z-pol .d::before,.day.z-move .d::before{background-image:url("data:image/webp;base64,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")}
+.day.z-road{box-shadow:inset 4px 0 0 var(--muted)}
+.day.z-abh{box-shadow:inset 4px 0 0 var(--accent)}
+.day.z-pol{box-shadow:inset 4px 0 0 var(--snow)}
+.day.z-move{box-shadow:none;background-image:linear-gradient(var(--accent),var(--snow));background-repeat:no-repeat;background-position:left top;background-size:4px 100%}
+@media (max-width:620px){.day .d::before{width:28px;height:28px;margin:5px 0 0}}
+.day:first-child{border-top:0}
+.day.bd{background-color:var(--accent-soft)}   /* именно background-color: короткая запись стёрла бы рисунок зоны */
+.day.bd .d::after{content:"♥";display:block;margin-top:2px;color:var(--accent);font-size:15px;line-height:1}
+.day .d{font-weight:600;font-variant-numeric:tabular-nums}
+.day .d small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.day .t{font-weight:600;margin-bottom:2px}
+.day ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.day li{display:grid;grid-template-columns:50px minmax(0,1fr);gap:8px}
+.day li b{font-weight:500;font-variant-numeric:tabular-nums;color:var(--muted)}
+.day .n{font-size:13px;color:var(--muted);text-align:right}
+.day .n b{display:block;color:var(--ink);font-weight:500;font-size:14px}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--leaf-soft);color:var(--leaf);margin-left:6px;vertical-align:1px}
+.tag.abh{background:var(--accent-soft);color:var(--accent)}
+.tag:not(.abh){background:var(--snow-soft);color:var(--snow)}
+@media (max-width:620px){.day{grid-template-columns:70px minmax(0,1fr)}.day .n{grid-column:2;text-align:left}.day .n b{display:inline;margin-left:4px}}
+
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface);padding:7px 13px;border-radius:10px;cursor:pointer;font-size:14px}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+textarea{width:100%;min-height:140px;font:13px/1.45 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--ink)}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
+th,td{padding:9px 14px;text-align:left;vertical-align:top;border-top:1px solid var(--line)}
+thead th{border-top:0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td small{display:block;color:var(--muted);font-size:12px}
+tfoot td{font-weight:600;font-size:15px}
+.when-now{color:var(--bad);font-weight:600}
+
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.card ul{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:3px}
+.card .temp{font-family:var(--display);font-weight:500;font-size:16px}
+@media (max-width:820px){.cards{grid-template-columns:1fr}}
+
+.packs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.packs{grid-template-columns:1fr}}
+.pack{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.pack h3{padding:4px 4px 6px;display:flex;justify-content:space-between;gap:8px}
+.pack h3 span{font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.pack input:checked+span{color:var(--muted);text-decoration:line-through}
+.money{border:2px dashed var(--accent);border-radius:16px;padding:16px;background:var(--surface)}
+.money .total{font-family:var(--display);font-size:26px;font-weight:500;color:var(--accent);font-variant-numeric:tabular-nums}
+.foot{font-size:13px;color:var(--muted);max-width:75ch}
+.hand{font-family:"Caveat",cursive;font-size:23px;line-height:1.25;color:var(--accent);max-width:26ch;margin-top:2px;
+  display:flex;align-items:flex-start;gap:9px}
+.ico{flex:none}
+.ico.cat{width:40px;height:40px;margin-top:-2px}
+.ico.fir{width:24px;height:24px;vertical-align:-5px;margin-right:8px}
+@media print{aside,.btns{display:none}.layout{display:block}}
+@media (prefers-reduced-motion:no-preference){.cal button,.seg button{transition:background-color .15s,color .15s}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <noscript>
+    <div class="alert bad" style="margin-bottom:16px">Страница открылась пустая: даты не подставились, календарь и план не собрались. Это не поломка — просто она открыта во встроенном просмотрщике, а он не запускает скрипты. Нажми «Поделиться» или «⋯» сверху и выбери «Открыть в Safari» (или в Chrome) — там всё заработает.</div>
+
+  </noscript>
+  <div class="eyebrow" id="edition">Новогодние каникулы · январь 2027</div>
+  <h1>Сочи, Абхазия и&nbsp;Красная Поляна</h1>
+
+<p class="hand"><svg class="ico cat" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 13.6L5 4.6l8 4.4z" fill="#E2701C"/><path d="M25.5 13.6L27 4.6l-8 4.4z" fill="#E2701C"/><path d="M8.4 12.5l-.8-4.7 4.3 2.4z" fill="#F7B98A"/><path d="M23.6 12.5l.8-4.7-4.3 2.4z" fill="#F7B98A"/><ellipse cx="16" cy="18.2" rx="11" ry="9.6" fill="#E2701C"/><ellipse cx="11.9" cy="16.6" rx="1.7" ry="2.3" fill="#fff"/><ellipse cx="20.1" cy="16.6" rx="1.7" ry="2.3" fill="#fff"/><path d="M16 20.1l-1.6-1.4h3.2z" fill="#fff"/><path d="M13.5 22.3c.9 1.2 4.1 1.2 5 0" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M1.6 16.6h4.3M1.6 20.2h4.3M26.1 16.6h4.3M26.1 20.2h4.3" stroke="#E2701C" stroke-width="1.3" stroke-linecap="round"/></svg>Катюш, тут можно всё</p>
+<p class="muted" style="max-width:70ch">Это твоя версия плана. Отметь слева, когда ты свободна и когда у тебя смены, — план по дням справа пересчитается сам. Отметки сохраняются в этом браузере, так что просто пришли мне даты.</p>
+  <div class="summary">
+    <div><b id="sumDates">—</b><span>поездка, от выезда до дома</span></div>
+    <div><b id="sumAbh">—</b><span>Абхазия</span></div>
+    <div><b id="sumPol">—</b><span>Красная Поляна</span></div>
+    <div id="sumBdBox"><b id="sumBd">—</b><span>7 января, день рождения</span></div>
+  </div>
+</div>
+
+<div class="layout">
+<aside>
+  <div class="panel">
+    <h2>Даты</h2>
+    <div class="field">
+      <label for="startDate">Выезд поездом из Симферополя</label>
+      <select id="startDate"></select>
+      <span class="small muted">Поезд 316С уходит в 12:40, в Адлере на следующий день в 09:13.</span>
+    </div>
+    <div class="field"><span class="lbl">Ночей в Абхазии</span>
+      <div class="step"><button type="button" id="abhMinus" aria-label="Меньше ночей в Абхазии">−</button><output id="abhOut">2</output><button type="button" id="abhPlus" aria-label="Больше ночей в Абхазии">+</button></div>
+    </div>
+    <div class="field"><span class="lbl">Ночей в Красной Поляне</span>
+      <div class="step"><button type="button" id="polMinus" aria-label="Меньше ночей в Поляне">−</button><output id="polOut">3</output><button type="button" id="polPlus" aria-label="Больше ночей в Поляне">+</button></div>
+    </div>
+    <div class="field">
+      <label for="backDate">Обратный поезд из Адлера</label>
+      <select id="backDate"></select>
+      <span class="small muted" id="backNote"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+
+<h2>Когда ты можешь поехать</h2>
+    <p class="small muted">Поставь ползунки: с какого по какое число ты свободна. Дальше планировщик сам скажет, помещается поездка в эти дни или нет.</p>
+    <div class="field"><span class="lbl">Свободна с</span>
+      <div class="range"><input type="range" id="freeFrom" min="-1" max="19" step="1" aria-label="Первый свободный день"><b id="freeFromOut">—</b></div>
+    </div>
+    <div class="field"><span class="lbl">по</span>
+      <div class="range"><input type="range" id="freeTo" min="-1" max="19" step="1" aria-label="Последний свободный день"><b id="freeToOut">—</b></div>
+    </div>
+    <p class="small muted" id="freeSum"></p>
+  </div>
+
+  <div class="panel">
+
+<h2>Твои смены</h2>
+    <p class="small muted">Нажми на дни, когда у тебя смены. Красным подсветятся те, что попадают на поездку.</p>
+    <div class="cal" id="cal"></div>
+    <div class="legend"><span><i style="border:1px solid var(--accent)"></i>поездка</span><span><i style="background:var(--ink)"></i>работа</span><span><i style="background:var(--bad)"></i>накладка</span><span><i style="background:var(--leaf-soft)"></i>свободна</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>Дорога и жильё</h2>
+    <div class="field"><span class="lbl">Поезд</span>
+      <div class="seg" data-key="trainClass"><button type="button" data-v="plaz">Плацкарт</button><button type="button" data-v="kupe">Купе</button></div>
+    </div>
+    <div class="field"><span class="lbl">Как ездить по Абхазии</span>
+      <div class="seg" data-key="abhTransport"><button type="button" data-v="taxi">Такси</button><button type="button" data-v="bus">Маршрутки и группы</button><button type="button" data-v="guide">Свой гид с машиной</button></div>
+    </div>
+    <div class="field"><span class="lbl">Жильё в Гагре</span>
+      <div class="seg" data-key="gagraLevel"><button type="button" data-v="gh">Гостевой дом</button><button type="button" data-v="hotel">Отель</button></div>
+    </div>
+    <div class="field">
+      <label for="polPlace">Где жить в горах</label>
+      <select id="polPlace">
+        <option value="posyolok">Красная Поляна, посёлок</option>
+        <option value="roza">Роза Хутор</option>
+        <option value="gorki">Горки Город (Эсто-Садок)</option>
+      </select>
+    </div>
+    <div class="field"><span class="lbl">Жильё в горах</span>
+      <div class="seg" data-key="polLevel"><button type="button" data-v="gh">Гостевой дом</button><button type="button" data-v="hotel">Отель</button></div>
+    </div>
+    <div class="field"><span class="lbl">Еда</span>
+      <div class="seg" data-key="food"><button type="button" data-v="rest">Рестораны</button><button type="button" data-v="snack">Кафе и перекусы</button></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Чем заняться</h2>
+    <p class="small muted">Отметь, что хочется. Что не влезает в дни, планировщик подскажет.</p>
+    <details class="acts" open><summary>Абхазия<span class="cnt" id="cntAbh"></span></summary><div class="checks" id="abhActs"></div></details>
+    <details class="acts"><summary>Горы<span class="cnt" id="cntPol"></span></summary><div class="checks" id="polActs"></div></details>
+    <details class="acts"><summary>Сочи<span class="cnt" id="cntSochi"></span></summary><div class="checks" id="sochiActs"></div></details>
+    <details class="acts" id="ownBox"><summary>Твои пункты<span class="cnt" id="cntOwn"></span></summary>
+      <div class="checks" id="ownActs"></div>
+      <div class="addrow">
+        <input type="text" id="ownInput" placeholder="Например: конная прогулка" maxlength="80" aria-label="Что ещё хочется">
+        <button type="button" class="btn" id="ownAdd">Добавить</button>
+      </div>
+    </details>
+  </div>
+</aside>
+
+<main>
+
+
+  <section>
+    <div class="sec-head"><h2>План по дням</h2><div class="btns"><button type="button" class="btn" id="copyPlan">Скопировать план текстом</button></div></div>
+    <div class="alerts" id="alerts"></div>
+    <div class="days" id="days"></div>
+    <textarea id="planText" hidden readonly aria-label="План текстом"></textarea>
+
+    <p class="foot">Время поездов — на 25 октября 2026. Туда едем ночь, обратно почти сутки. Билеты я сверю и куплю сам.</p>
+  </section>
+
+
+
+
+  <section>
+    <h2>Как одеться</h2>
+    <div class="cards" id="clothes"></div>
+  </section>
+
+  <section id="eventsBox" hidden>
+    <h2><img class="ico fir" src="data:image/webp;base64,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" alt="" aria-hidden="true">Что идёт в эти дни</h2>
+    <div class="cards" id="events"></div>
+    <p class="foot">Программа площади - с официальной страницы Роза Хутор на сезон 2027, концерт - по Яндекс Афише. Вечернее катание указано по прошлому сезону: расписание и цены 2026/27 ещё не публиковали, сверить ближе к датам.</p>
+  </section>
+
+
+
+  <section>
+    <div class="sec-head"><h2>Прислать Mars</h2><button type="button" class="btn" id="copyWish">Скопировать мой выбор</button></div>
+    <p class="small muted">Отметь свободные дни, смены и галочки «чем заняться» — а потом нажми кнопку и пришли мне текст в любом мессенджере. Список вещей и бронирования я беру на себя.</p>
+    <div class="field"><label for="wish">Что ещё хочешь увидеть или сделать</label>
+      <textarea id="wish" rows="3" placeholder="Например: конная прогулка, рынок в Гагре, просто посидеть у моря"></textarea></div>
+    <textarea id="wishText" hidden readonly aria-label="Мой выбор текстом"></textarea>
+    <p class="small muted" id="wishNote" role="status"></p>
+  </section>
+
+  
+
+</main>
+</div>
+
+<script>
+(function(){
+'use strict';
+var Y = 2027;
+var BD = 7; // 7 января
+var CAL_FIRST = -1, CAL_LAST = 19; // 30 дек … 19 янв: самая длинная поездка (выезд 6 янв, 4 ноч. Абхазия, 7 в горах) кончается 19-го
+
+/* подписи, которые звучат по-разному в двух версиях */
+
+var T = {
+  shiftConflict: 'У тебя смены в дни поездки: ',
+  freeOk: 'целиком в твои свободные дни, накладок нет.',
+  freeOut: 'выходит за твои свободные дни (',
+  freeShort: 'у тебя свободно ',
+  bdOut: '7 января не попадает в твои свободные дни — день рождения придётся на рабочий день.'
+};
+var WD = ['вс','пн','вт','ср','чт','пт','сб'];
+var MON = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+
+function dt(day){ return new Date(Y, 0, day); } // day может быть ≤0 (декабрь)
+function lbl(day){ var d = dt(day); return d.getDate() + ' ' + MON[d.getMonth()]; }
+function wd(day){ return WD[dt(day).getDay()]; }
+function key(day){ var d = dt(day); return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate(); }
+function p2(n){ return (n < 10 ? '0' : '') + n; }
+function isoDate(day){ var d = dt(day); return d.getFullYear() + '-' + p2(d.getMonth()+1) + '-' + p2(d.getDate()); }
+function ruDate(day){ var d = dt(day); return p2(d.getDate()) + '.' + p2(d.getMonth()+1) + '.' + d.getFullYear(); }
+
+
+
+var ABH_ACTS = [
+  {id:'mand', name:'Мандариновый сад и фотосессия', note:'полдня, лучше в день приезда', cap:0.5},
+  {id:'photog', name:'С фотографом', note:'1,5 часа', cap:0, parent:'mand'},
+  {id:'rica', name:'Озеро Рица и Гегский водопад', note:'весь день, в снегопад дорогу закрывают', cap:1},
+  {id:'afon', name:'Новый Афон и пещера', note:'полдня', cap:0.5},
+  {id:'kyn', name:'Термальные источники Кындыг', note:'полдня, ≈2 ч от Гагры', cap:0.5},
+  {id:'gagra', name:'Старая Гагра и колоннада', note:'пара часов', cap:0.5},
+  {id:'abaata', name:'Крепость Абаата и храм Ипатия', note:'пара часов, рядом со Старой Гагрой', cap:0.5},
+  {id:'pitsunda', name:'Пицунда: реликтовая роща и маяк', note:'полдня, зимой открыто и бесплатно', cap:0.5},
+  {id:'gastro', name:'Гастротур: сыры, мёд, вино', note:'полдня, зимой уточнять у организатора', cap:0.5},
+  {id:'sukhum', name:'Сухум: ботсад и обезьяний питомник', note:'весь день, питомник закрыт вс и пн', cap:1}
+];
+var POL_ACTS = [
+  {id:'peak', name:'Подъём на Роза Пик', note:'полдня', cap:0.5},
+  {id:'ski', name:'Катание (прокат)', note:'весь день', cap:1},
+  {id:'spa', name:'СПА или бассейн', note:'полдня', cap:0.5},
+  {id:'tubing', name:'Тюбинг и родельбан', note:'пара часов, Горная Олимпийская деревня', cap:0.5},
+  {id:'rink', name:'Каток на Роза Хутор', note:'час-два, коньки дают на месте', cap:0.5},
+  {id:'husky', name:'Хаски-парк и оленья ферма', note:'полдня, Эсто-Садок', cap:0.5}
+];
+var SOCHI_ACTS = [
+  {id:'sochi', name:'Олимпийский парк и набережная Сочи', note:'полдня, из гор ≈1 ч', cap:0.5},
+  {id:'tiso', name:'Тисо-самшитовая роща в Хосте', note:'полдня, реликтовый лес, зимой пусто', cap:0.5},
+  {id:'cave', name:'Воронцовские пещеры', note:'полдня, внутри +11 круглый год', cap:0.5},
+  {id:'dendra', name:'Сочинский дендрарий', note:'пара часов, фуникулёр не работает', cap:0.5},
+  {id:'park', name:'Сочи Парк и колесо обозрения', note:'полдня минимум, парк 11:00–21:00', cap:0.5}
+];
+var ACT_TEXT = {
+  mand:'Мандариновый сад, фотосессия', rica:'Озеро Рица и Гегский водопад', afon:'Новый Афон: монастырь и пещера',
+  kyn:'Термальные источники Кындыг', gagra:'Старая Гагра, колоннада, Приморский парк',
+  abaata:'Крепость Абаата и храм Ипатия', pitsunda:'Пицунда: роща и маяк', gastro:'Гастротур с дегустациями',
+  sukhum:'Сухум: ботсад и обезьяний питомник',
+  peak:'Подъём на Роза Пик', ski:'Катание на лыжах или сноуборде', sochi:'Олимпийский парк и набережная Сочи', spa:'СПА или бассейн',
+  tubing:'Тюбинг и родельбан', rink:'Каток на Роза Хутор', husky:'Хаски-парк и оленья ферма',
+  tiso:'Тисо-самшитовая роща', cave:'Воронцовские пещеры', dendra:'Сочинский дендрарий',
+  park:'Сочи Парк: аттракционы и колесо обозрения'
+};
+/* что куда ставить, берём из самих списков: добавил пункт с cap - он сразу участвует */
+function idsByCap(list, cap){
+  return list.filter(function(a){ return !a.parent && a.cap === cap; }).map(function(a){ return a.id; });
+}
+function actText(id){ return ACT_TEXT[id] + (id === 'mand' && S.acts.photog ? ', с фотографом' : ''); }
+var PLACE = {posyolok:'Красная Поляна', roza:'Роза Хутор', gorki:'Горки Город'};
+var PLACE_TO = {posyolok:'Красной Поляны', roza:'Розы Хутор', gorki:'Горки Города'};
+
+/* Дни: 0 = 31 декабря, -1 = 30 декабря. Берём только подтверждённое. */
+var EVENTS = [
+  {from:-1, to:10, where:'pol', t:'Роза Хутор, главная площадь',
+   d:'Диско-ёлка 18:00, сказочный парад по набережной 19:00, фестивальная программа 19:00–22:00. Новогодний базар 10:00–22:00, резиденция Деда Мороза 11:00–17:00.',
+   url:'https://go.rosakhutor.ru/new-year', src:'Программа курорта на 2027'},
+  {day:7, where:'pol', t:'7 января, площадь',
+   d:'С 15:00 играет саксофонист. Это сверх обычной вечерней программы.',
+   url:'https://go.rosakhutor.ru/new-year', src:'Программа курорта на 2027'},
+  {day:7, where:'pol', t:'7 января, «Роза Холл»',
+   d:'Концерт Paul van Dyk, 21:00, 18+. Если идти — билеты смотреть заранее.',
+   url:'https://afisha.yandex.ru/sochi/concert/paul-van-dyk-2026', src:'Билеты и время на Яндекс Афише'},
+  {from:-1, to:13, where:'pol', t:'Вечернее катание и подъём',
+   d:'Роза Хутор 19:00–23:00, Газпром Лаура 18:00–23:00, Красная Поляна 18:30–22:30. Подъёмники Лауры до 22:50. Расписание прошлого сезона — сверить.',
+   url:'https://rosakhutor.ru/', src:'Роза Хутор: актуальное расписание'},
+  {from:-1, to:10, where:'pol', t:'Сочи Парк: «Калейдоскоп чудес»',
+   d:'Новогодний сезон идёт с 26 декабря по 10 января, парк работает 11:00–21:00. Колесо обозрения «Колесо времени», 60 метров — оплачивается отдельно от единого билета.',
+   url:'https://www.sochipark.ru/novogodnyaya-skazka/', src:'Новогодняя программа парка'},
+  {from:10, to:19, where:'pol', t:'После 10 января праздники сворачиваются',
+   d:'Новогодний сезон в Сочи Парке кончается 10 января, вечерняя программа на площади Роза Хутор - тоже. Дальше возможен сокращённый режим работы. Если возвращаемся позже, на это рассчитывать не стоит.',
+   url:'https://www.sochipark.ru/programma/', src:'Актуальные часы парка'},
+  {from:-1, to:19, t:'Что обычно бывает в эти дни',
+   d:'Это программа прошлых сезонов: афиши на 2027 выходят в декабре, тогда и сверим. Сочи: ёлка 23 метра и рождественский базар на площади Флага, ярмарка на Навагинской, балеты и «Щелкунчик» в Зимнем театре. Олимпийский парк: поющие фонтаны, зимой с 18:00. Сириус: опера и балет с 22 декабря по 14 января. Красная Поляна: бесплатное шоу в игорной зоне в 21:00 и концерты в RED ARENA.',
+   url:'https://www.afisha.ru/sochi/events/', src:'Афиша Сочи: смотреть ближе к датам'},
+  {from:-1, to:13, where:'abh', t:'Абхазия зимой: свет',
+   d:'Зимой в Абхазии бывают отключения электричества, в прежние годы до 12 часов в сутки. Пауэрбанк и фонарик лишними не будут.'}
+];
+
+/* Куда смотреть ближе к датам: программы меняются, а страница - нет. */
+var AFISHA = [
+  ['Роза Хутор', 'https://rosakhutor.ru/'],
+  ['Курорт Красная Поляна', 'https://krasnayapolyanaresort.ru/'],
+  ['Сочи Парк: афиша и часы', 'https://www.sochipark.ru/programma/'],
+  ['Колесо обозрения «Колесо времени»', 'https://www.sochipark.ru/thingstodo/rides/koleso-vremeni/'],
+  ['Афиша Сочи', 'https://afisha.yandex.ru/sochi'],
+  ['Экскурсии по Абхазии', 'https://experience.tripster.ru/experience/Gagra/']
+];
+
+var DEFAULT = {start:3, abh:2, pol:3, trainClass:'kupe', abhTransport:'taxi', gagraLevel:'hotel', polPlace:'posyolok', polLevel:'hotel', food:'rest',
+  acts:{mand:true, photog:true, rica:true, afon:false, kyn:false, gagra:true, peak:true, ski:false, sochi:true, spa:false}, work:{},
+  free:{from:-1, to:19},
+  touched:{free:false, work:false, acts:false},
+  own:[]};
+
+function load(k, def){ try { var v = JSON.parse(localStorage.getItem(k)); return v || def; } catch(e){ return def; } }
+function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+var S = load('trip27-state', null);
+if (!S) S = JSON.parse(JSON.stringify(DEFAULT));
+for (var dk in DEFAULT) if (S[dk] === undefined) S[dk] = JSON.parse(JSON.stringify(DEFAULT[dk]));
+for (var ak in DEFAULT.acts) if (S.acts[ak] === undefined) S.acts[ak] = DEFAULT.acts[ak];
+for (var fk in DEFAULT.free) if (typeof S.free[fk] !== 'number') S.free[fk] = DEFAULT.free[fk];
+for (var tk in DEFAULT.touched) if (typeof S.touched[tk] !== 'boolean') S.touched[tk] = DEFAULT.touched[tk];
+if (!(S.own instanceof Array)) S.own = [];
+if (S.free.to === 13 && !S.touched.free) S.free.to = CAL_LAST;   // состояние, сохранённое до расширения календаря
+
+
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+/* ---------- построение плана ---------- */
+function build(){
+  var s = S.start, A = S.abh, K = S.pol;
+  var arrive = s + 1;            // приезд в Адлер
+  var P = arrive + A;            // заезд в горы
+  var R = P + K;                 // выезд из гор, поезд
+  var home = R + 1;
+  var tr = S.abhTransport;
+  var alerts = [];
+  var days = [];
+  function day(n){ var o = {n:n, title:'', items:[], night:'', zone:''}; days.push(o); return o; }
+  function it(o, t, x){ o.items.push([t, x]); }
+
+  // выезд
+  var d0 = day(s); d0.title = 'Симферополь → Адлер'; d0.zone = 'road';
+  it(d0, '12:00', 'Быть на вокзале Симферополь');
+  it(d0, '12:40', 'Поезд 316С Симферополь → Адлер, ' + (S.trainClass === 'kupe' ? 'купе' : 'плацкарт') + ', в пути ≈20,5 ч');
+  d0.night = 'в поезде';
+
+  // Абхазия: слоты
+  var aSlots = []; // {day, half}
+  var aDays = [];
+  for (var i = 0; i <= A; i++) aDays.push(day(arrive + i));
+  aDays.forEach(function(o, i){ o.zone = 'abh'; });
+  if (A > 0){
+    aSlots.push({d:0, h:'pm'});
+    for (i = 1; i < A; i++){ aSlots.push({d:i, h:'am'}); aSlots.push({d:i, h:'pm'}); }
+    aSlots.push({d:A, h:'am'});
+  }
+  var used = {};
+  function free(slot){ return !used[slot.d + slot.h]; }
+  function take(slot, id){ used[slot.d + slot.h] = id; }
+  var placed = {}; var unplaced = [];
+  // целый день
+  idsByCap(ABH_ACTS, 1).forEach(function(id){
+    if (!S.acts[id]) return;
+    for (var d = 1; d < A; d++){ if (!used[d+'am'] && !used[d+'pm']){ used[d+'am'] = id; used[d+'pm'] = id; placed[id] = d; return; } }
+    unplaced.push(id);
+  });
+  // пункты на целый день в горах (пока таких нет, кроме катания, оно ставится отдельно)
+  idsByCap(ABH_ACTS, 0.5).forEach(function(id){
+    if (!S.acts[id]) return;
+    var order = aSlots.slice();
+    if (id === 'gagra') order.reverse(); // прогулку по Гагре — ближе к отъезду
+    for (var k = 0; k < order.length; k++){
+      // утро отъезда: только то, что рядом с Гагрой
+      if (order[k].d === A && id !== 'gagra' && id !== 'mand') continue;
+      if (free(order[k])){ take(order[k], id); placed[id] = order[k].d; return; }
+    }
+    unplaced.push(id);
+  });
+
+  var hTime = {am:'10:00', pm:'14:30'};
+  var dinner = S.food === 'rest' ? 'Ужин в ресторане' : 'Ужин в кафе или перекус';
+
+  if (A > 0){
+    var a0 = aDays[0]; a0.title = 'Адлер → Гагра';
+    it(a0, '09:13', 'Прибытие в Адлер');
+    if (tr === 'bus'){ it(a0, '09:30', 'Такси или автобус до КПП Псоу, ≈15 мин'); }
+    else it(a0, '09:30', 'Такси до КПП Псоу, ≈15 мин');
+    it(a0, '10:00', 'Граница пешком: обычно 30 мин, в каникулы до 2 ч');
+    if (tr === 'taxi') it(a0, '12:00', 'Такси до Гагры, ≈30 мин, заселение');
+    else if (tr === 'bus') it(a0, '12:00', 'Маршрутка до Гагры, ≈40 мин, заселение');
+    else it(a0, '12:00', 'Гид встречает после границы, едем в Гагру, заселение');
+    for (i = 0; i <= A; i++){
+      var o = aDays[i];
+      if (i > 0 && i < A) o.title = 'Гагра и окрестности';
+      if (used[i+'am'] && used[i+'am'] === used[i+'pm']){ it(o, '09:00', actText(used[i+'am']) + ' (весь день)'); }
+      else {
+        if (used[i+'am']) it(o, hTime.am, actText(used[i+'am']));
+        if (used[i+'pm']) it(o, hTime.pm, actText(used[i+'pm']));
+      }
+      if (i > 0 && i < A && !used[i+'am'] && !used[i+'pm']) it(o, '', 'Свободный день: море, рынок, кафе');
+      if (i < A){ it(o, '19:00', dinner + ' в Гагре'); o.night = 'Гагра'; }
+    }
+    var aL = aDays[A]; aL.title = 'Гагра → ' + PLACE[S.polPlace]; aL.zone = 'move';
+    it(aL, '12:30', tr === 'bus' ? 'Маршрутка до КПП Псоу' : (tr === 'guide' ? 'Гид отвозит к границе' : 'Такси до КПП Псоу'));
+    it(aL, '13:00', 'Граница пешком');
+    it(aL, '15:00', 'Такси до ' + PLACE_TO[S.polPlace] + ', ≈1–1,5 ч');
+    it(aL, '16:30', 'Заселение');
+    it(aL, '19:00', dinner);
+    aL.night = PLACE[S.polPlace];
+  }
+
+  // Горы
+  var pDays = [];
+  for (i = 1; i < K; i++) pDays.push(day(P + i));
+  var pSlots = [];
+  pDays.forEach(function(o, idx){ o.zone = 'pol'; pSlots.push({d:idx, h:'am'}); pSlots.push({d:idx, h:'pm'}); });
+  var pUsed = {};
+  if (S.acts.ski){
+    var skiDay = -1;
+    for (i = 0; i < pDays.length; i++) if (pDays[i].n !== BD){ skiDay = i; break; }
+    if (skiDay < 0 && pDays.length) skiDay = 0;
+    if (skiDay >= 0){ pUsed[skiDay+'am'] = 'ski'; pUsed[skiDay+'pm'] = 'ski'; } else unplaced.push('ski');
+  }
+  idsByCap(POL_ACTS.concat(SOCHI_ACTS), 0.5).forEach(function(id){
+    if (!S.acts[id]) return;
+    var order = pSlots.slice();
+    if (id === 'peak'){ order.sort(function(a,b){ return (pDays[a.d].n===BD?0:1) - (pDays[b.d].n===BD?0:1); }); }
+    for (var k = 0; k < order.length; k++){ var sl = order[k]; if (!pUsed[sl.d+sl.h]){ pUsed[sl.d+sl.h] = id; return; } }
+    unplaced.push(id);
+  });
+  pDays.forEach(function(o, idx){
+    o.title = o.n === BD ? 'День рождения' : PLACE[S.polPlace];
+    if (pUsed[idx+'am'] && pUsed[idx+'am'] === pUsed[idx+'pm']) it(o, '09:30', ACT_TEXT[pUsed[idx+'am']] + ' (весь день)');
+    else {
+      if (pUsed[idx+'am']) it(o, '10:00', ACT_TEXT[pUsed[idx+'am']]);
+      if (pUsed[idx+'pm']) it(o, '14:30', ACT_TEXT[pUsed[idx+'pm']]);
+      if (!pUsed[idx+'am'] && !pUsed[idx+'pm']) it(o, '', 'Свободный день: прогулки, канатки, отдых');
+    }
+    it(o, '19:00', o.n === BD ? 'Праздничный ужин на двоих' : dinner);
+    o.night = PLACE[S.polPlace];
+    if (o.n === BD) o.bd = true;
+  });
+
+  var dR = day(R); dR.title = PLACE[S.polPlace] + ' → Симферополь'; dR.zone = 'road';
+  it(dR, '10:00', 'Выезд из отеля, такси или Ласточка до Адлера, ≈1 ч');
+  it(dR, '12:33', 'Поезд 316Э «Таврия» Адлер → Симферополь');
+  dR.night = 'в поезде';
+  var dH = day(home); dH.title = 'Дома'; dH.zone = 'road';
+  it(dH, '11:40', 'Прибытие в Симферополь, в пути ≈23 ч');
+  dH.night = 'дома';
+
+  // проверки
+  if (P > BD){
+    var fixes = [];
+    if (A > 1) fixes.push('убрать ночь в Абхазии');
+    if (s > 0) fixes.push('выехать раньше');
+    alerts.push(['bad', 'В горы заезд ' + lbl(P) + ' — 7 января пройдёт в Абхазии или в дороге.' +
+      (fixes.length ? ' Поможет: ' + fixes.join(' или ') + '.' : ' Поправить нечем: выезд и ночи уже на минимуме.')]);
+  }
+  else if (P === BD) alerts.push(['bad', 'Переезд в горы выпадает на 7 января — день рождения пройдёт в дороге и на границе. Лучше заехать 6-го.']);
+  else if (R <= BD) alerts.push(['bad', 'Выезд из гор ' + lbl(R) + ', до дня рождения. Нужно больше ночей в Поляне.']);
+  else if (P === BD - 1) alerts.push(['good', 'Заезд в горы 6 января: день рождения 7-го уже на месте, без дороги.']);
+  else alerts.push(['good', 'Заезд в горы ' + lbl(P) + ', день рождения 7 января на месте.']);
+  var fullDay = idsByCap(ABH_ACTS, 1).filter(function(id){ return S.acts[id]; });
+  if (fullDay.length && A < 2) alerts.push(['warn', 'На это нужен целый день, а с одной ночью в Абхазии он не помещается: ' + fullDay.map(function(id){ return ACT_TEXT[id]; }).join(', ') + '.']);
+  var un = unplaced.filter(function(id){ return !(fullDay.indexOf(id) >= 0 && A < 2); });
+  if (un.length) alerts.push(['warn', 'Не помещается: ' + un.map(function(id){ return ACT_TEXT[id]; }).join(', ') + '. Нужна ещё ночь или на одно занятие меньше.']);
+  if (s <= 3 && A >= 1) alerts.push(['warn', 'Граница ' + lbl(arrive) + ' — пик каникул, закладываем до 2 часов на очередь.']);
+  var conflicts = [];
+  for (var dd = s; dd <= home; dd++) if (S.work[key(dd)]) conflicts.push(lbl(dd));
+  if (conflicts.length) alerts.push(['bad', T.shiftConflict + conflicts.join(', ') + '. Нужен отгул или сдвиг дат.']);
+  // свободное окно Кати
+  var fFrom = Math.min(S.free.from, S.free.to), fTo = Math.max(S.free.from, S.free.to);
+  var freeSet = !(fFrom <= CAL_FIRST && fTo >= CAL_LAST);
+  if (freeSet){
+    var need = home - s + 1, have = fTo - fFrom + 1;
+    // сдвиг выезда годится, только если он не ломает 7 января и не наезжает на смены
+    function shiftOk(ns){
+      var P2 = ns + 1 + A, R2 = P2 + K, home2 = R2 + 1;
+      if (!(P2 <= BD - 1 && R2 > BD)) return false;
+      for (var d2 = ns; d2 <= home2; d2++) if (S.work[key(d2)]) return false;
+      return true;
+    }
+    if (s >= fFrom && home <= fTo){
+      // молчим, если уже сказано про смены: два противоположных вывода подряд читать невозможно
+      if (!conflicts.length) alerts.push(['good', 'Поездка ' + lbl(s) + ' – ' + lbl(home) + ' ' + T.freeOk]);
+    } else if (have >= need){
+      var ns = (s < fFrom) ? fFrom : s - (home - fTo);
+      var head = 'Накладка: поездка ' + lbl(s) + ' – ' + lbl(home) + ' ' + T.freeOut + lbl(fFrom) + ' – ' + lbl(fTo) + ').';
+      if (ns >= 0 && ns <= 6 && shiftOk(ns)) alerts.push(['bad', head + ' Если выехать ' + lbl(ns) + ' — помещается.']);
+      else alerts.push(['bad', head + ' Сдвигом выезда не лечится: 7 января должно пройти на месте. Нужен отгул или меньше ночей.']);
+    } else {
+      alerts.push(['bad', 'Накладка: ' + T.freeShort + have + ' дн. (' + lbl(fFrom) + ' – ' + lbl(fTo) + '), а поездка занимает ' + need + ' дн. Нужно короче на ' + (need - have) + ' дн. или ещё отгул.']);
+    }
+    if (BD < fFrom || BD > fTo) alerts.push(['warn', T.bdOut]);
+  }
+  // производственный календарь 2027: 1–8 янв праздники, 9–10 выходные
+  var workdays = [];
+  for (dd = s; dd <= home; dd++){ var w = dt(dd).getDay(); var hol = (dt(dd).getMonth()===0 && dt(dd).getDate()<=8) || dt(dd).getMonth()===11 && dt(dd).getDate()===31; if (!hol && w!==0 && w!==6) workdays.push(lbl(dd)); }
+  if (workdays.length) alerts.push(['warn', 'По обычному календарю рабочие дни в поездке: ' + workdays.join(', ') + '.']);
+
+  // важное вперёд: зелёное, стоящее последним, читается как итог и перебивает красное
+  var RANK = {bad:0, warn:1, good:2};
+  alerts.sort(function(a, b){ return RANK[a[0]] - RANK[b[0]]; });
+  days.sort(function(a,b){ return a.n - b.n; });
+  return {s:s, A:A, K:K, arrive:arrive, P:P, R:R, home:home, days:days, alerts:alerts, placed:placed, aActDays:countActDays(used, A),
+    free:{set:freeSet, from:fFrom, to:fTo}};
+}
+function countActDays(used, A){ var c = 0; for (var i = 0; i <= A; i++) if (used[i+'am'] || used[i+'pm']) c++; return c; }
+
+/* ---------- отрисовка ---------- */
+function renderControls(){
+  var sel = $('startDate');
+  if (!sel.options.length){
+    for (var d = 0; d <= 6; d++){ var o = document.createElement('option'); o.value = d; o.textContent = lbl(d) + ', ' + wd(d); sel.appendChild(o); }
+  }
+  sel.value = S.start;
+  $('abhOut').textContent = S.abh; $('polOut').textContent = S.pol;
+  $('abhMinus').disabled = S.abh <= 1; $('abhPlus').disabled = S.abh >= 4;
+  $('polMinus').disabled = S.pol <= 1; $('polPlus').disabled = S.pol >= 7;
+  var pDay = S.start + 1 + S.abh;            // день заезда в горы
+  var back = $('backDate'), cur = String(S.pol);
+  back.innerHTML = '';
+  for (var k = 1; k <= 7; k++){
+    var o = document.createElement('option');
+    o.value = k; o.textContent = lbl(pDay + k) + ', ' + wd(pDay + k) + ' — ' + k + ' ноч. в горах';
+    back.appendChild(o);
+  }
+  back.value = cur;
+  $('backNote').textContent = 'Поезд 316Э уходит из Адлера в 12:33, в Симферополе ' + lbl(pDay + S.pol + 1) + ' в 11:40. Вечерних рейсов нет — уезжаем днём.';
+  $('freeFrom').value = S.free.from; $('freeTo').value = S.free.to;
+  var ff = Math.min(S.free.from, S.free.to), ft = Math.max(S.free.from, S.free.to);
+  $('freeFromOut').textContent = lbl(S.free.from); $('freeToOut').textContent = lbl(S.free.to);
+  $('freeSum').textContent = (ff <= CAL_FIRST && ft >= CAL_LAST)
+    ? 'Окно не сужено — считаем, что все каникулы свободны.'
+    : 'Свободна ' + (ft - ff + 1) + ' дн.: ' + lbl(ff) + ' – ' + lbl(ft) + '.';
+  $('polPlace').value = S.polPlace;
+  document.querySelectorAll('.seg[data-key]').forEach(function(g){
+    var k = g.getAttribute('data-key');
+    g.querySelectorAll('button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === S[k])); });
+  });
+  function acts(list, el){
+    el.innerHTML = list.map(function(a){
+      if (a.parent && !S.acts[a.parent]) return '';
+      return '<label class="'+(a.parent?'sub':'')+'"><input type="checkbox" data-act="'+a.id+'"'+(S.acts[a.id]?' checked':'')+'><span>'+esc(a.name)+'<small>'+esc(a.note)+'</small></span></label>';
+    }).join('');
+  }
+  acts(ABH_ACTS, $('abhActs')); acts(POL_ACTS, $('polActs')); acts(SOCHI_ACTS, $('sochiActs'));
+  function cnt(el, list){
+    var n = list.filter(function(a){ return !a.parent && S.acts[a.id]; }).length;
+    el.textContent = n ? n + ' из ' + list.filter(function(a){ return !a.parent; }).length : '';
+  }
+  cnt($('cntAbh'), ABH_ACTS); cnt($('cntPol'), POL_ACTS); cnt($('cntSochi'), SOCHI_ACTS);
+  $('cntOwn').textContent = S.own.length ? S.own.filter(function(o){ return o.on; }).length + ' из ' + S.own.length : '';
+  $('ownActs').innerHTML = S.own.map(function(o, i){
+    return '<label class="own"><input type="checkbox" data-own="' + i + '"' + (o.on ? ' checked' : '') +
+      '><span>' + esc(o.t) + '</span><button type="button" class="del" data-delown="' + i + '" aria-label="Убрать пункт">×</button></label>';
+  }).join('');
+}
+
+function renderCal(plan){
+  var first = CAL_FIRST, last = CAL_LAST;
+  var html = WD.slice(1).concat(WD[0]).map(function(w){ return '<span class="wd">'+w+'</span>'; }).join('');
+  var lead = (dt(first).getDay() + 6) % 7;
+  for (var p = 0; p < lead; p++) html += '<span class="pad"></span>';
+  for (var d = first; d <= last; d++){
+    var cls = [];
+    if (plan.free.set && d >= plan.free.from && d <= plan.free.to) cls.push('free');
+    if (d >= plan.s && d <= plan.home) cls.push('trip');
+    if (S.work[key(d)]) cls.push('work');
+    if (d === BD) cls.push('bd');
+    html += '<button type="button" data-day="'+d+'" class="'+cls.join(' ')+'" aria-pressed="'+(!!S.work[key(d)])+'" aria-label="'+lbl(d)+(S.work[key(d)]?', работа':'')+'">'+dt(d).getDate()+'<small>'+MON[dt(d).getMonth()]+'</small></button>';
+  }
+  $('cal').innerHTML = html;
+}
+
+function renderPlan(plan){
+  $('sumDates').textContent = lbl(plan.s) + ' – ' + lbl(plan.home);
+  $('sumAbh').textContent = plan.A ? lbl(plan.arrive) + ' – ' + lbl(plan.P) : 'нет';
+  $('sumPol').textContent = lbl(plan.P) + ' – ' + lbl(plan.R);
+  var ok = plan.P <= BD - 1 && plan.R > BD;
+  $('sumBd').textContent = ok ? 'на месте' : 'в дороге';
+  $('sumBdBox').className = ok ? 'good' : 'bad';
+
+  $('alerts').innerHTML = plan.alerts.map(function(a){ return '<div class="alert '+(a[0]==='good'?'':a[0])+'">'+esc(a[1])+'</div>'; }).join('');
+  $('days').innerHTML = plan.days.map(function(o){
+    var tag = o.zone === 'abh' ? '<span class="tag abh">Абхазия</span>' : (o.zone === 'pol' ? '<span class="tag">горы</span>' : '');
+    return '<div class="day z-' + o.zone + (o.bd ? ' bd' : '') + '"><div class="d">'+lbl(o.n)+'<small>'+wd(o.n)+'</small></div><div><div class="t">'+esc(o.title)+tag+'</div><ul>'+
+      o.items.map(function(x){ return '<li><b>'+esc(x[0])+'</b><span>'+esc(x[1])+'</span></li>'; }).join('')+
+      '</ul></div><div class="n">ночь<b>'+esc(o.night)+'</b></div></div>';
+  }).join('');
+}
+
+
+
+function renderEvents(plan){
+  var box = $('eventsBox'); if (!box) return;
+  var list = EVENTS.filter(function(e){
+    var a = e.day !== undefined ? e.day : e.from;
+    var b = e.day !== undefined ? e.day : e.to;
+    if (b < plan.s || a > plan.home) return false;              // мимо поездки
+    if (e.where === 'pol' && !(b >= plan.P && a <= plan.R)) return false;   // горное — только пока мы в горах
+    if (e.where === 'abh' && !plan.A) return false;             // абхазское — только если Абхазия есть
+    return true;
+  });
+  var cards = list.map(function(e){
+    return '<div class="card"><h3>' + esc(e.t) + '</h3><p class="small">' + esc(e.d) + '</p>' +
+      (e.url ? '<p class="small"><a href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(e.src) + ' →</a></p>' : '') +
+      '</div>';
+  });
+  cards.push('<div class="card"><h3>Проверить ближе к датам</h3>' +
+    '<p class="small">Программы и расписания меняются, здесь они записаны на 25 октября. Актуальное — у самих курортов:</p>' +
+    '<ul class="links">' + AFISHA.map(function(a){
+      return '<li><a href="' + esc(a[1]) + '" target="_blank" rel="noopener">' + esc(a[0]) + ' →</a></li>';
+    }).join('') + '</ul></div>');
+  box.hidden = false;
+  $('events').innerHTML = cards.join('');
+}
+
+function renderClothes(){
+  var c = [
+    {t:'Поезд', temp:'в вагоне тепло', list:['Удобная одежда и тапочки','Слой, который легко снять','Еда и вода в дорогу']},
+    {t:'Абхазия, побережье', temp:'+8…+12 °C, дожди', list:['Непромокаемая куртка или дождевик','Свитер или флиска под куртку','Обувь, которая не промокает','Для Рицы: шапка и перчатки — там снег']},
+    {t:'Горы, ' + PLACE[S.polPlace], temp:'0…+6 °C внизу, наверху мороз и ветер', list:['Тёплая куртка, шапка, перчатки, шарф','Зимние ботинки с нескользящей подошвой','Солнцезащитные очки — снег слепит','Наряд на праздничный ужин 7 января']}
+  ];
+  if (S.acts.ski) c[2].list.push('Для катания: термобельё, флиска, горнолыжные штаны и куртка (можно взять в прокат), маска, баф');
+  $('clothes').innerHTML = c.map(function(x){ return '<div class="card"><h3>'+esc(x.t)+'</h3><div class="temp">'+esc(x.temp)+'</div><ul>'+x.list.map(function(l){ return '<li>'+esc(l)+'</li>'; }).join('')+'</ul></div>'; }).join('');
+}
+
+
+
+
+
+
+
+var lastPlan = null;
+function render(){
+  var plan = build(); lastPlan = plan;
+  renderControls(); renderCal(plan); renderPlan(plan); renderEvents(plan); renderClothes();
+  
+  save('trip27-state', S);
+}
+
+/* ---------- события ---------- */
+$('startDate').addEventListener('change', function(e){ S.start = +e.target.value; render(); });
+$('polPlace').addEventListener('change', function(e){ S.polPlace = e.target.value; render(); });
+$('abhMinus').onclick = function(){ if (S.abh > 1){ S.abh--; render(); } };
+$('abhPlus').onclick = function(){ if (S.abh < 4){ S.abh++; render(); } };
+$('polMinus').onclick = function(){ if (S.pol > 1){ S.pol--; render(); } };
+$('polPlus').onclick = function(){ if (S.pol < 7){ S.pol++; render(); } };
+$('backDate').addEventListener('change', function(e){ S.pol = +e.target.value; render(); });
+function addOwn(){
+  var v = $('ownInput').value.replace(/\s+/g, ' ').trim();
+  if (!v) return;
+  S.own.push({t: v.slice(0, 80), on: true});
+  $('ownInput').value = '';
+  S.touched.acts = true;
+  $('ownBox').open = true;
+  render();
+}
+$('ownAdd').onclick = addOwn;
+$('ownInput').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); addOwn(); } });
+$('ownActs').addEventListener('click', function(e){
+  var b = e.target.closest('.del'); if (!b) return;
+  S.own.splice(+b.getAttribute('data-delown'), 1);
+  S.touched.acts = true;
+  render();
+});
+$('freeFrom').addEventListener('input', function(e){ S.free.from = +e.target.value; if (S.free.from > S.free.to) S.free.to = S.free.from; S.touched.free = true; render(); });
+$('freeTo').addEventListener('input', function(e){ S.free.to = +e.target.value; if (S.free.to < S.free.from) S.free.from = S.free.to; S.touched.free = true; render(); });
+document.querySelectorAll('.seg[data-key]').forEach(function(g){
+  g.addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; S[g.getAttribute('data-key')] = b.getAttribute('data-v'); render(); });
+});
+document.addEventListener('change', function(e){
+  var t = e.target;
+  if (t.dataset.act){ S.acts[t.dataset.act] = t.checked; S.touched.acts = true; render(); }
+  else if (t.dataset.own !== undefined){ S.own[+t.dataset.own].on = t.checked; S.touched.acts = true; render(); }
+  
+});
+$('cal').addEventListener('click', function(e){
+  var b = e.target.closest('button'); if (!b) return;
+  var k = key(+b.dataset.day);
+  if (S.work[k]) delete S.work[k]; else S.work[k] = true;
+  S.touched.work = true;
+  render();
+});
+
+function planLines(){
+  var p = lastPlan, out = ['Поездка ' + lbl(p.s) + ' – ' + lbl(p.home)];
+  p.days.forEach(function(o){
+    out.push(''); out.push(lbl(o.n) + ', ' + wd(o.n) + ' — ' + o.title);
+    o.items.forEach(function(x){ out.push((x[0] ? x[0] + '  ' : '') + x[1]); });
+    out.push('Ночь: ' + o.night);
+  });
+  return out;
+}
+
+var WISH = load('trip27-wish', '');
+function wishText(){
+  var pl = lastPlan || build();
+  var ff = Math.min(S.free.from, S.free.to), ft = Math.max(S.free.from, S.free.to);
+  var L = ['Мой выбор по поездке:'];
+  // чего она не трогала - про то и не пишем: пустая строка лучше упрёка
+  if (S.touched.free && !(ff <= CAL_FIRST && ft >= CAL_LAST)) L.push('Свободна: ' + lbl(ff) + ' – ' + lbl(ft));
+  var sh = [];
+  for (var d = CAL_FIRST; d <= CAL_LAST; d++) if (S.work[key(d)]) sh.push(lbl(d));
+  if (sh.length) L.push('Смены: ' + sh.join(', '));
+  L.push('Поездка по плану: ' + lbl(pl.s) + ' – ' + lbl(pl.home) + ' (' + pl.A + ' ноч. Абхазия, ' + pl.K + ' ноч. горы)');
+  var want = [];
+  var collect = function(list){
+    list.forEach(function(a){ if (!a.parent && S.acts[a.id]) want.push(actText(a.id)); });
+  };
+  collect(ABH_ACTS); collect(POL_ACTS); collect(SOCHI_ACTS);
+  if (want.length) L.push('Хочу: ' + want.join('; '));
+  var own = S.own.filter(function(o){ return o.on; }).map(function(o){ return o.t; });
+  if (own.length) L.push('Её пункты: ' + own.join('; '));
+  if (WISH.trim()) L.push('Ещё хочу: ' + WISH.trim());
+  return L.join('\n');
+}
+if ($('wish')){
+  $('wish').value = WISH;
+  $('wish').addEventListener('input', function(e){ WISH = e.target.value; save('trip27-wish', WISH); });
+
+  /* Системное «Поделиться» работает только по https и только из клика.
+     Ничего не уходит на чужие серверы: текст идёт в то приложение, которое выберет Катя. */
+  var canShare = !!navigator.share;
+  $('copyWish').textContent = canShare ? 'Отправить Mars' : 'Скопировать мой выбор';
+  var note = function(msg){ var el = $('wishNote'); if (el) el.textContent = msg || ''; };
+  var copyIt = function(text){
+    var ta = $('wishText');
+    ta.value = text;
+    var manual = function(){
+      ta.hidden = false;
+      ta.focus(); ta.select();
+      try { ta.setSelectionRange(0, ta.value.length); } catch(e){}
+      note('Выдели текст в рамке, скопируй и пришли мне.');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(text).then(function(){ note('Скопировано. Вставь мне в сообщения.'); }, manual);
+    else manual();
+  };
+  $('copyWish').onclick = function(){
+    var text = wishText();
+    $('wishText').value = text;
+    if (!canShare){ copyIt(text); return; }
+    note('');
+    navigator.share({text: text}).then(
+      function(){ note('Отправлено. Спасибо!'); },
+      function(e){ if (e && e.name === 'AbortError') return; copyIt(text); }   // отмену меню за ошибку не считаем
+    );
+  };
+}
+
+
+$('copyPlan').onclick = function(){
+  var text = planLines().join('\n'), ta = $('planText');
+  ta.value = text;
+  var done = function(){ $('copyPlan').textContent = 'Скопировано'; setTimeout(function(){ $('copyPlan').textContent = 'Скопировать план текстом'; }, 1800); };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, function(){ ta.hidden = false; ta.select(); });
+  } else { ta.hidden = false; ta.select(); }
+};
+
+
+render();
+})();
+</script>
+</body>
+</html>
